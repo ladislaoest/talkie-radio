@@ -533,8 +533,8 @@
 <!-- AUDIO CONTEXT NODES (hidden) -->
 <div style="display:none">
   <audio id="remote-audio" autoplay></audio>
-  <!-- Audio silencioso para mantener vivo el proceso en iOS -->
-  <audio id="bg-silence" loop src="data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A"></audio>
+  <!-- Tono de 20Hz: Inaudible para humanos pero cuenta como audio activo para iOS/Watch -->
+  <audio id="bg-silence" loop src="data:audio/wav;base64,UklGRiQAAABXQVZFRm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YQAAAAA="></audio>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
