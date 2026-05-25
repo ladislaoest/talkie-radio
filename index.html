@@ -700,6 +700,10 @@ async function joinEvent() {
   state.user = u;
   state.event = e;
 
+  // Iniciar audio silencioso con el primer clic del usuario (necesario para iOS)
+  const bgAudio = document.getElementById('bg-silence');
+  bgAudio.play().catch(() => {});
+
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('app-screen').classList.remove('hidden');
   document.getElementById('topbar-user').textContent = u;
@@ -772,20 +776,12 @@ function setupMediaSession() {
   if ('mediaSession' in navigator) {
     updateMediaMetadata(false);
 
-    // Mapear controles de pantalla de bloqueo al PTT
+    // Mapear unicamente Play/Pause que son los que iOS permite sin desbloquear
     navigator.mediaSession.setActionHandler('play', () => { 
-      if (!state.transmitting) startPTT();
+      startPTT();
     });
     navigator.mediaSession.setActionHandler('pause', () => { 
-      if (state.transmitting) stopPTT();
-    });
-    
-    // Opcional: usar pistas siguiente/anterior como disparadores
-    navigator.mediaSession.setActionHandler('nexttrack', () => { 
-      if (!state.transmitting) startPTT();
-    });
-    navigator.mediaSession.setActionHandler('previoustrack', () => { 
-      if (state.transmitting) stopPTT();
+      stopPTT();
     });
   }
 }
