@@ -770,22 +770,37 @@ async function requestMic() {
 
 function setupMediaSession() {
   if ('mediaSession' in navigator) {
+    updateMediaMetadata(false);
+
+    // Mapear controles de pantalla de bloqueo al PTT
+    navigator.mediaSession.setActionHandler('play', () => { 
+      if (!state.transmitting) startPTT();
+    });
+    navigator.mediaSession.setActionHandler('pause', () => { 
+      if (state.transmitting) stopPTT();
+    });
+    
+    // Opcional: usar pistas siguiente/anterior como disparadores
+    navigator.mediaSession.setActionHandler('nexttrack', () => { 
+      if (!state.transmitting) startPTT();
+    });
+    navigator.mediaSession.setActionHandler('previoustrack', () => { 
+      if (state.transmitting) stopPTT();
+    });
+  }
+}
+
+function updateMediaMetadata(isTalking) {
+  if ('mediaSession' in navigator) {
     navigator.mediaSession.metadata = new MediaMetadata({
-      title: 'TALKIE — Radio en Vivo',
-      artist: state.user || 'Evento Activo',
-      album: state.event || 'Comunicacion',
+      title: isTalking ? '🔴 TRANSMITIENDO...' : '📻 TALKIE — En espera',
+      artist: state.user || 'Usuario',
+      album: `Canal: ${state.channel}`,
       artwork: [
         { src: 'https://cdn-icons-png.flaticon.com/512/3126/3126543.png', sizes: '512x512', type: 'image/png' }
       ]
     });
-
-    // Mantener la sesion activa aunque no haya sonido
-    navigator.mediaSession.setActionHandler('play', () => { 
-      document.getElementById('bg-silence').play();
-    });
-    navigator.mediaSession.setActionHandler('pause', () => { 
-      document.getElementById('bg-silence').pause();
-    });
+    navigator.mediaSession.playbackState = isTalking ? 'playing' : 'paused';
   }
 }
 
@@ -853,11 +868,13 @@ function startMeterLoop() {
 // ──────────────────────────────────────────
 
 function startPTT(e) {
-  e.preventDefault();
+  if (e) e.preventDefault();
   if (state.muted || !state.stream) { showToast('🔇 Micrófono silenciado'); return; }
   if (state.transmitting) return;
   state.transmitting = true;
   state.txStart = Date.now();
+
+  updateMediaMetadata(true);
 
   const btn = document.getElementById('ptt-btn');
   btn.classList.add('active');
@@ -887,6 +904,8 @@ function stopPTT(e) {
   if (e) e.preventDefault();
   if (!state.transmitting) return;
   state.transmitting = false;
+
+  updateMediaMetadata(false);
 
   const btn = document.getElementById('ptt-btn');
   btn.classList.remove('active');
