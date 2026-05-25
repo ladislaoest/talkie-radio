@@ -1,0 +1,16 @@
+{
+  "name": "TALKIE — Event Radio",
+  "short_name": "TALKIE",
+  "description": "Walkie-talkie webapp for events",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3126/3126543.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
