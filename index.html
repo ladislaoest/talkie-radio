@@ -533,6 +533,8 @@
 <!-- AUDIO CONTEXT NODES (hidden) -->
 <div style="display:none">
   <audio id="remote-audio" autoplay></audio>
+  <!-- Audio silencioso para mantener vivo el proceso en iOS -->
+  <audio id="bg-silence" loop src="data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A"></audio>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -766,8 +768,38 @@ async function requestMic() {
 // AUDIO SETUP
 // ──────────────────────────────────────────
 
+function setupMediaSession() {
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: 'TALKIE — Radio en Vivo',
+      artist: state.user || 'Evento Activo',
+      album: state.event || 'Comunicacion',
+      artwork: [
+        { src: 'https://cdn-icons-png.flaticon.com/512/3126/3126543.png', sizes: '512x512', type: 'image/png' }
+      ]
+    });
+
+    // Mantener la sesion activa aunque no haya sonido
+    navigator.mediaSession.setActionHandler('play', () => { 
+      document.getElementById('bg-silence').play();
+    });
+    navigator.mediaSession.setActionHandler('pause', () => { 
+      document.getElementById('bg-silence').pause();
+    });
+  }
+}
+
 async function setupAudio() {
-  console.log('[DEBUG] Intentando obtener mediaDevices.getUserMedia...');
+  remoteLog('DEBUG', 'Intentando obtener mediaDevices.getUserMedia...');
+  
+  // Activar audio de fondo para iOS
+  const bgAudio = document.getElementById('bg-silence');
+  bgAudio.play().catch(() => {
+    remoteLog('DEBUG', 'Audio de fondo esperando interaccion');
+  });
+
+  setupMediaSession();
+
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     console.error('[DEBUG] El navegador no soporta getUserMedia o no esta en un entorno seguro (HTTPS/Localhost)');
     throw new Error('Navegador no compatible');
